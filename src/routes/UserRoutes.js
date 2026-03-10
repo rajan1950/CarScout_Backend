@@ -4,7 +4,7 @@ const usercontroller = require("../controller/UserController");
 // CREATE - POST
 //localhost:4444/user/register
 router.post("/register", usercontroller.registerUser)
-
+//localhost:4444/user/login
 router.get("/getallusers", usercontroller.getAllUsers);
 
 router.get("/getallusers/:id", usercontroller.getUserById);
