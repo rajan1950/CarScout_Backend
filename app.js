@@ -14,6 +14,9 @@ DBConnection();
 const userRoutes = require("./src/routes/UserRoutes");
 app.use("/user",userRoutes);
 
+const carRoutes = require("./src/routes/CarRoutes");
+app.use("/car",carRoutes);
+
 const PORT= process.env.PORT  
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`); 
