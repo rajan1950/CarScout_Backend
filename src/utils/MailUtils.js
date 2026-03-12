@@ -11,21 +11,38 @@ const sendWelcomeEmail = async (email, name) => {
   });
 
   const mailOptions = {
-    from:process.env.EMAIL_USER,
+    from: process.env.EMAIL_USER,
     to: email,
     subject: "Welcome to CarScout",
-    text: `Hello ${name}, welcome to CarScout 🚗`,
-    attachments: [
-      {
-        filename: "welcome-image.jpg",
-        path: __dirname + "/CarScout.png"
-      }
-    ]
+   
 
+    html: `
+      <div style="background:#1e1e1e;padding:40px;text-align:center;font-family:Arial;color:white">
+
+        <h1>Welcome to <span style="color:red">CarScout 🚗</span></h1>
+
+        <p>Hello <b>${name}</b></p>
+
+        <p>Thank you for joining CarScout.</p>
+
+        <p>Your smart platform to buy and sell cars easily.</p>
+
+        <a href="http://localhost:5173/login"
+        style="background:red;color:white;padding:12px 25px;border-radius:5px;text-decoration:none">
+        Login to Your Account
+        </a>
+
+        <p style="margin-top:20px;font-size:12px">
+        © 2026 CarScout
+        </p>
+
+      </div>
+    `,
+    
   };
 
   await transporter.sendMail(mailOptions);
-  console.log(`Welcome email sent to ${email}`);
+
 };
 
 module.exports = {

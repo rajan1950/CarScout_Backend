@@ -1,5 +1,6 @@
 const userSchema = require('../models/UserModel');
 const mailsend = require('../utils/MailUtils');
+const {sendWelcomeEmail} = require('../utils/MailUtils');
 
 const bcrypt = require('bcrypt');
 
@@ -18,6 +19,7 @@ const registerUser = async (req, res) => {
       password: hashedPassword
     });
 
+    await sendWelcomeEmail(email, firstname);
     // send welcome email
     await mailsend.sendWelcomeEmail(savedUser.email, savedUser.firstname);
 
