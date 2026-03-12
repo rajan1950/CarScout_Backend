@@ -14,7 +14,14 @@ const sendWelcomeEmail = async (email, name) => {
     from:process.env.EMAIL_USER,
     to: email,
     subject: "Welcome to CarScout",
-    text: `Hello ${name}, welcome to CarScout 🚗`
+    text: `Hello ${name}, welcome to CarScout 🚗`,
+    attachments: [
+      {
+        filename: "welcome-image.jpg",
+        path: __dirname + "/CarScout.png"
+      }
+    ]
+
   };
 
   await transporter.sendMail(mailOptions);
