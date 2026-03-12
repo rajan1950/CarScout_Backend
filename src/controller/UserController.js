@@ -1,19 +1,71 @@
 const userSchema = require('../models/UserModel');
+const mailsend = require('../utils/MailUtils');
 
 const bcrypt = require('bcrypt');
 
 //post method for user registration
 const registerUser = async (req, res) => {
-    try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+  try {
 
-        const savedUser = await userSchema.create({ ...req.body, password: hashedPassword });
-        res.status(201).json({
-            message: "User registered successfully",
-            user: savedUser
+    const { firstname, lastname, email, password } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const savedUser = await userSchema.create({
+      firstname: firstname,
+      lastname: lastname,
+      email: email,
+      password: hashedPassword
+    });
+
+    // send welcome email
+    await mailsend.sendWelcomeEmail(savedUser.email, savedUser.firstname);
+
+    return res.status(201).json({
+      message: "User registered successfully",
+      user: savedUser
+      
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const foundUserFromEmail = await userSchema.findOne({ email: email });
+        console.log(foundUserFromEmail);
+
+        if (foundUserFromEmail) {
+            const isPasswordMatch = await bcrypt.compare(password, foundUserFromEmail.password);
+
+            if (isPasswordMatch) {
+                res.status(200).json({
+                    message: "login successful",
+                    data: foundUserFromEmail,
+                    role: foundUserFromEmail.role
+                });
+            } else {
+                res.status(401).json({
+                    message: "invalid credentials"
+                });
+            }
+        } else {
+            res.status(404).json({
+                message: "user not found"
+            });
+        }
+
+    } catch (err) {
+        res.status(500).json({
+            message: "error while logging in",
+            error: err.message
         });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
     }
 };
 //get method for fetching all users
@@ -76,6 +128,7 @@ const deleteUser = async (req, res) => {
 
 module.exports = {
     registerUser,
+    loginUser,
     getAllUsers,
     getUserById,
     updateUser,
