@@ -21,7 +21,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['user', 'admin','Customer - Buy Cars','Dealer - Sell Cars'],
         default: 'user'
     },
     profilepic:{
