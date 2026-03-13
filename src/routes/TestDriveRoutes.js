@@ -9,10 +9,14 @@ const {
 } = require("../controller/TestDriveController");
 
 const router = express.Router();
-
-router.post("/add", createTestDrive);        
-router.get("/all", getAllTestDrives);        
-router.get("/:id", getTestDriveById);        
-router.put("/:id", updateTestDrive);         
+//localhost:5000/api/testdrives/add
+router.post("/add", createTestDrive);  
+//localhost:5000/api/testdrives/all      
+router.get("/all", getAllTestDrives);   
+//localhost:5000/api/testdrives/:id     
+router.get("/:id", getTestDriveById);
+//localhost:5000/api/testdrives/:id        
+router.put("/:id", updateTestDrive);
+//localhost:5000/api/testdrives/:id         
 router.delete("/:id", deleteTestDrive);      
 module.exports = router;
