@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const registerUser = async (req, res) => {
   try {
 
-    const { firstname, lastname, email, password } = req.body;
+    const { firstname, lastname, email, password , role } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -16,7 +16,8 @@ const registerUser = async (req, res) => {
       firstname: firstname,
       lastname: lastname,
       email: email,
-      password: hashedPassword
+      password: hashedPassword,
+      role: role
     });
 
     await sendWelcomeEmail(email, firstname);
