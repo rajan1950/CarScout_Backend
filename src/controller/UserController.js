@@ -1,5 +1,4 @@
 const userSchema = require('../models/UserModel');
-const mailsend = require('../utils/MailUtils');
 const {sendWelcomeEmail} = require('../utils/MailUtils');
 
 const bcrypt = require('bcrypt');
@@ -9,6 +8,13 @@ const registerUser = async (req, res) => {
   try {
 
     const { firstname, lastname, email, password , role } = req.body;
+
+        const existingUser = await userSchema.findOne({ email: email });
+        if (existingUser) {
+            return res.status(409).json({
+                message: "Email already exists"
+            });
+        }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -20,9 +26,8 @@ const registerUser = async (req, res) => {
       role: role
     });
 
-    await sendWelcomeEmail(email, firstname);
-    // send welcome email
-    await mailsend.sendWelcomeEmail(savedUser.email, savedUser.firstname);
+        // Send email in background so registration response is not delayed.
+        sendWelcomeEmail(email, firstname).catch(() => {});
 
     return res.status(201).json({
       message: "User registered successfully",
