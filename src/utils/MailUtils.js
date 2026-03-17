@@ -1,6 +1,10 @@
 const nodemailer = require("nodemailer");
+const path = require("path");
+const fs = require("fs");
 
 const sendWelcomeEmail = async (email, name) => {
+  const welcomeImagePath = process.env.WELCOME_IMAGE_PATH || path.join(__dirname, "images", "car scout.png");
+  const hasWelcomeImage = fs.existsSync(welcomeImagePath);
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -38,6 +42,14 @@ const sendWelcomeEmail = async (email, name) => {
 
       </div>
     `,
+    attachments: hasWelcomeImage
+      ? [
+          {
+            filename: path.basename(welcomeImagePath),
+            path: welcomeImagePath
+          }
+        ]
+      : [],
     
   };
 
