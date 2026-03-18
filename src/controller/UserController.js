@@ -1,5 +1,7 @@
 const userSchema = require('../models/UserModel');
 const {sendWelcomeEmail} = require('../utils/MailUtils');
+const jwt = require('jsonwebtoken');
+const secret = process.env.JWT_SECRET;
 
 const bcrypt = require('bcrypt');
 
@@ -42,7 +44,6 @@ const registerUser = async (req, res) => {
   }
 };
 
-
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -54,9 +55,15 @@ const loginUser = async (req, res) => {
             const isPasswordMatch = await bcrypt.compare(password, foundUserFromEmail.password);
 
             if (isPasswordMatch) {
+
+                // Generate JWT token with user ID and role
+                 const token = jwt.sign({ id: foundUserFromEmail._id }, secret);
+                
                 res.status(200).json({
                     message: "login successful",
-                    data: foundUserFromEmail,
+                    
+                    token:token,
+                    // data: foundUserFromEmail,
                     role: foundUserFromEmail.role
                 });
             } else {
@@ -89,7 +96,7 @@ const getAllUsers = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
+//get method for fetching user by ID
 const getUserById = async (req, res) => {
     try {
         const user = await userSchema.findById(req.params.id);
@@ -122,6 +129,7 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
+        
         const deletedUser = await userSchema.findByIdAndDelete(req.params.id);
         if (!deletedUser) {
             return res.status(404).json({ message: "User not found" });
