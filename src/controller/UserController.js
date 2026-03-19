@@ -56,15 +56,28 @@ const loginUser = async (req, res) => {
 
             if (isPasswordMatch) {
 
-                // Generate JWT token with user ID and role
-                 const token = jwt.sign({ id: foundUserFromEmail._id }, secret);
+                                // Generate JWT token with user ID and role
+                                 const token = jwt.sign(
+                                        { id: foundUserFromEmail._id, role: foundUserFromEmail.role },
+                                        secret
+                                 );
                 
                 res.status(200).json({
                     message: "login successful",
                     
                     token:token,
-                    // data: foundUserFromEmail,
-                    role: foundUserFromEmail.role
+                                        role: foundUserFromEmail.role,
+                                        user: {
+                                            _id: foundUserFromEmail._id,
+                                            firstname: foundUserFromEmail.firstname,
+                                            lastname: foundUserFromEmail.lastname,
+                                            email: foundUserFromEmail.email,
+                                            role: foundUserFromEmail.role,
+                                            name: [foundUserFromEmail.firstname, foundUserFromEmail.lastname]
+                                                .filter(Boolean)
+                                                .join(" ")
+                                                .trim()
+                                        }
                 });
             } else {
                 res.status(401).json({
