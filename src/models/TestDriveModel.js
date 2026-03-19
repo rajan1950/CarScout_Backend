@@ -27,6 +27,16 @@ const testDriveSchema = new mongoose.Schema({
   status: {
     type: String,
     default: "pending"
+  },
+
+  reminderSent: {
+    type: Boolean,
+    default: false
+  },
+
+  reminderSentAt: {
+    type: Date,
+    default: null
   }
 
 }, { timestamps: true });
