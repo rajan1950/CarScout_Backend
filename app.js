@@ -32,10 +32,13 @@ app.use("/reviews",reviewRoutes);
 const testDriveRoutes = require("./src/routes/TestDriveRoutes");
 app.use("/testdrive",testDriveRoutes);
 
+const { startTestDriveReminderWorker } = require("./src/controller/TestDriveController");
+
 const notificationRoutes = require("./src/routes/NotificationRoutes");
 app.use("/notification", notificationRoutes);
 
 const PORT= process.env.PORT  
 app.listen(PORT, () => {
+    startTestDriveReminderWorker();
     console.log(`Server is running on port ${PORT}`); 
 })
