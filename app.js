@@ -32,6 +32,9 @@ app.use("/reviews",reviewRoutes);
 const testDriveRoutes = require("./src/routes/TestDriveRoutes");
 app.use("/testdrive",testDriveRoutes);
 
+const notificationRoutes = require("./src/routes/NotificationRoutes");
+app.use("/notification", notificationRoutes);
+
 const PORT= process.env.PORT  
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`); 
