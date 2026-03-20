@@ -1,11 +1,53 @@
 const Car = require("../models/CarModel");
 
+const normalizeCarPayload = (body = {}) => ({
+  brand: body.brand,
+  model: body.model,
+  city: body.city,
+  year: Number(body.year),
+  owner: body.owner,
+  mileage: body.mileage,
+  fuelType: body.fuelType,
+  transmission: body.transmission,
+  price: Number(body.price),
+  description: body.description || ""
+});
+
+const validateCarPayload = (payload) => {
+  const requiredFields = ["brand", "model", "city", "year", "owner", "mileage", "fuelType", "transmission", "price"];
+
+  for (const field of requiredFields) {
+    if (!payload[field]) {
+      return `${field} is required`;
+    }
+  }
+
+  if (Number.isNaN(payload.year) || payload.year < 1980) {
+    return "year must be a valid number";
+  }
+
+  if (Number.isNaN(payload.price) || payload.price <= 0) {
+    return "price must be a valid number";
+  }
+
+  return null;
+};
+
 
 // CREATE CAR
 const createCar = async (req, res) => {
   try {
 
-    const car = await Car.create(req.body);
+    const payload = normalizeCarPayload(req.body);
+    const validationError = validateCarPayload(payload);
+
+    if (validationError) {
+      return res.status(400).json({
+        message: validationError
+      });
+    }
+
+    const car = await Car.create(payload);
 
     res.status(201).json({
       message: "Car Created",
@@ -50,10 +92,19 @@ const getCarById = async (req, res) => {
 const updateCar = async (req, res) => {
   try {
 
+    const payload = normalizeCarPayload(req.body);
+    const validationError = validateCarPayload(payload);
+
+    if (validationError) {
+      return res.status(400).json({
+        message: validationError
+      });
+    }
+
     const car = await Car.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true }
+      payload,
+      { new: true, runValidators: true }
     );
 
     res.json(car);
