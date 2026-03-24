@@ -1,16 +1,42 @@
 const Car = require("../models/CarModel");
+const { uploadToCloudinary } = require("../utils/CloudinaryUtils");
 
-const normalizeCarPayload = (body = {}) => ({
+const normalizeOwner = (owner) => {
+  if (owner === undefined || owner === null) {
+    return owner;
+  }
+
+  const ownerMap = {
+    "1": "1st owner",
+    "2": "2nd owner",
+    "3": "3rd owner",
+    "4": "4th owner",
+    "1st": "1st owner",
+    "2nd": "2nd owner",
+    "3rd": "3rd owner",
+    "4th": "4th owner",
+    "1st owner": "1st owner",
+    "2nd owner": "2nd owner",
+    "3rd owner": "3rd owner",
+    "4th owner": "4th owner"
+  };
+
+  const key = String(owner).trim().toLowerCase();
+  return ownerMap[key] || owner;
+};
+
+const normalizeCarPayload = (body = {}, file = null) => ({
   brand: body.brand,
   model: body.model,
   city: body.city,
   year: Number(body.year),
-  owner: body.owner,
+  owner: normalizeOwner(body.owner),
   mileage: body.mileage,
   fuelType: body.fuelType,
   transmission: body.transmission,
   price: Number(body.price),
-  description: body.description || ""
+  description: body.description || "",
+  image: file ? `/uploads/${file.filename}` : (body.image || "")
 });
 
 const validateCarPayload = (payload) => {
@@ -37,8 +63,20 @@ const validateCarPayload = (payload) => {
 // CREATE CAR
 const createCar = async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({
+        message: "image is required"
+      });
+    }
 
-    const payload = normalizeCarPayload(req.body);
+    const cloudinaryResponse = await uploadToCloudinary(req.file.path);
+    const imageUrl = cloudinaryResponse.secure_url;
+
+
+
+    // console.log("file....",req.file); // Log the uploaded file information
+
+    const payload = normalizeCarPayload({ ...req.body, image: imageUrl });
     const validationError = validateCarPayload(payload);
 
     if (validationError) {
