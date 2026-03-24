@@ -19,6 +19,11 @@ router.put("/getallusers/:id", validateToken, usercontroller.updateUser);
 //localhost:4444/user/getallusers/1
 router.delete("/getallusers/:id", validateToken, usercontroller.deleteUser);
 
+router.post("/forgotpassword", usercontroller.forgotpassword);
+
+router.put("/resetpassword", usercontroller.resetpassword);
+
+
 
 
 module.exports = router;    
