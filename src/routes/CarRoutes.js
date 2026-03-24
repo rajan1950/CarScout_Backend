@@ -10,7 +10,9 @@ const {
 
 const router = express.Router();
 
-router.post("/add", createCar);//localhost:4444/car/add
+const upload = require("../middleware/UploadMiddleware");
+
+router.post("/add",upload.single("image"), createCar);//localhost:4444/car/add
 router.get("/all", getAllCars);//localhost:4444/car/all
 router.get("/:id", getCarById);//localhost:4444/car/1
 router.put("/:id", updateCar);//localhost:4444/car/1
