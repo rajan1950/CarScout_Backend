@@ -18,8 +18,6 @@ const sendWelcomeEmail = async (email, name) => {
     from: process.env.EMAIL_USER,
     to: email,
     subject: "Welcome to CarScout",
-   
-
     html: `
       <div style="background:#1e1e1e;padding:40px;text-align:center;font-family:Arial;color:white">
 
@@ -57,6 +55,36 @@ const sendWelcomeEmail = async (email, name) => {
 
 };
 
+const sendResetPasswordEmail = async (email, resetUrl) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Reset Password Link",
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#222">
+        <p>You requested a password reset for your CarScout account.</p>
+        <p>
+          <a href="${resetUrl}" style="display:inline-block;background:#d62828;color:#fff;padding:10px 16px;text-decoration:none;border-radius:4px">
+            Reset Password
+          </a>
+        </p>
+        <p>This link expires in 15 minutes.</p>
+      </div>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 module.exports = {
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  sendResetPasswordEmail
 };
