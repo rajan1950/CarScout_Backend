@@ -32,9 +32,33 @@ const userSchema = new Schema({
         type: String,
         default: "active",
         enum: ["active", "inactive", "banned", "pending", "suspended", "deleted", "verified", "unverified"]
-    }
-});
-// }, { timestamps: true });
+    },
+    passwordChangedAt: {
+        type: Date,
+        default: null
+    },
+    passwordAuditLogs: [
+        {
+            action: {
+                type: String,
+                default: "reset-password"
+            },
+            changedAt: {
+                type: Date,
+                default: Date.now
+            },
+            ip: {
+                type: String,
+                default: ""
+            },
+            userAgent: {
+                type: String,
+                default: ""
+            }
+        }
+    ]
+});{ timestamps: true }
+
 
 const User = mongoose.model('Users', userSchema);
 
