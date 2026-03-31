@@ -8,11 +8,114 @@ const bcrypt = require('bcrypt');
 const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 const STRONG_PASSWORD_MESSAGE = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
 
+const getUploadedProfilePath = (req) => {
+    if (req.file && req.file.filename) {
+        return `/uploads/${req.file.filename}`;
+    }
+
+    if (Array.isArray(req.files) && req.files.length > 0) {
+        const firstFile = req.files[0];
+        if (firstFile && firstFile.filename) {
+            return `/uploads/${firstFile.filename}`;
+        }
+    }
+
+    return "";
+};
+
+const splitFullName = (value = "") => {
+    const normalized = String(value).trim().replace(/\s+/g, " ");
+    if (!normalized) {
+        return { firstname: "", lastname: "" };
+    }
+
+    const parts = normalized.split(" ");
+    const firstname = parts.shift() || "";
+    const lastname = parts.join(" ");
+    return { firstname, lastname };
+};
+
+const buildUserProfileUpdatePayload = (body = {}) => {
+    const payload = {};
+
+    const hasFullName = Object.prototype.hasOwnProperty.call(body, "fullName")
+        || Object.prototype.hasOwnProperty.call(body, "fullname")
+        || Object.prototype.hasOwnProperty.call(body, "name");
+
+    if (hasFullName) {
+        const sourceName = body.fullName || body.fullname || body.name || "";
+        const { firstname, lastname } = splitFullName(sourceName);
+        payload.firstname = firstname;
+        payload.lastname = lastname;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "firstname")) payload.firstname = body.firstname;
+    if (Object.prototype.hasOwnProperty.call(body, "lastname")) payload.lastname = body.lastname;
+    if (Object.prototype.hasOwnProperty.call(body, "email")) payload.email = body.email;
+    if (Object.prototype.hasOwnProperty.call(body, "mobile")) {
+        payload.mobile = body.mobile;
+    } else if (Object.prototype.hasOwnProperty.call(body, "phone")) {
+        payload.mobile = body.phone;
+    } else if (Object.prototype.hasOwnProperty.call(body, "phoneNumber")) {
+        payload.mobile = body.phoneNumber;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "pinCode")) {
+        payload.pinCode = body.pinCode;
+    } else if (Object.prototype.hasOwnProperty.call(body, "pincode")) {
+        payload.pinCode = body.pincode;
+    } else if (Object.prototype.hasOwnProperty.call(body, "pin")) {
+        payload.pinCode = body.pin;
+    } else if (Object.prototype.hasOwnProperty.call(body, "pin_code")) {
+        payload.pinCode = body.pin_code;
+    } else if (Object.prototype.hasOwnProperty.call(body, "zipCode")) {
+        payload.pinCode = body.zipCode;
+    } else if (Object.prototype.hasOwnProperty.call(body, "postalCode")) {
+        payload.pinCode = body.postalCode;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "address")) payload.address = body.address;
+    if (Object.prototype.hasOwnProperty.call(body, "city")) {
+        payload.city = body.city;
+    } else if (Object.prototype.hasOwnProperty.call(body, "town")) {
+        payload.city = body.town;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "area")) {
+        payload.area = body.area;
+    } else if (Object.prototype.hasOwnProperty.call(body, "locality")) {
+        payload.area = body.locality;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "profilepic")) {
+        payload.profilepic = body.profilepic;
+    } else if (Object.prototype.hasOwnProperty.call(body, "profilePic")) {
+        payload.profilepic = body.profilePic;
+    } else if (Object.prototype.hasOwnProperty.call(body, "profilePhoto")) {
+        payload.profilepic = body.profilePhoto;
+    }
+
+    return payload;
+};
+
 //post method for user registration
 const registerUser = async (req, res) => {
     try {
 
-        const { firstname, lastname, email, password, role } = req.body;
+        const { email, password, role } = req.body;
+        let { firstname, lastname } = req.body;
+
+        if ((!firstname || !lastname) && (req.body.fullName || req.body.fullname || req.body.name)) {
+            const split = splitFullName(req.body.fullName || req.body.fullname || req.body.name);
+            firstname = firstname || split.firstname;
+            lastname = lastname || split.lastname;
+        }
+
+        if (!firstname || !lastname) {
+            return res.status(400).json({
+                message: "First name and last name are required"
+            });
+        }
 
         const existingUser = await userSchema.findOne({ email: email });
         if (existingUser) {
@@ -28,7 +131,13 @@ const registerUser = async (req, res) => {
             lastname: lastname,
             email: email,
             password: hashedPassword,
-            role: role
+            role: role,
+            mobile: req.body.mobile || "",
+            pinCode: req.body.pinCode || req.body.pincode || "",
+            address: req.body.address || "",
+            city: req.body.city || "",
+            area: req.body.area || "",
+            profilepic: req.body.profilepic || req.body.profilePic || req.body.profilePhoto || ""
         });
 
         // Send email in background so registration response is not delayed.
@@ -133,7 +242,29 @@ const getUserById = async (req, res) => {
 //put method for updating user details
 const updateUser = async (req, res) => {
     try {
-        const updatedUser = await userSchema.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const updatePayload = buildUserProfileUpdatePayload(req.body);
+        const uploadedProfilePath = getUploadedProfilePath(req);
+
+        if (uploadedProfilePath) {
+            updatePayload.profilepic = uploadedProfilePath;
+        }
+
+        const targetUserId = req.params.id || (req.user && (req.user.id || req.user._id));
+
+        if (!targetUserId) {
+            return res.status(400).json({ message: "User id is required" });
+        }
+
+        if (Object.keys(updatePayload).length === 0) {
+            return res.status(400).json({ message: "No profile fields provided to update" });
+        }
+
+        const updatedUser = await userSchema.findByIdAndUpdate(
+            targetUserId,
+            { $set: updatePayload },
+            { new: true, runValidators: true }
+        );
+
         if (!updatedUser) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -144,6 +275,32 @@ const updateUser = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+};
+
+const getMyProfile = async (req, res) => {
+    try {
+        const targetUserId = req.user && (req.user.id || req.user._id);
+        if (!targetUserId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        const user = await userSchema.findById(targetUserId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json({
+            message: "User fetched successfully",
+            user
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const updateMyProfile = async (req, res) => {
+    req.params.id = req.user && (req.user.id || req.user._id);
+    return updateUser(req, res);
 };
 
 //delete method for deleting user
@@ -287,6 +444,8 @@ module.exports = {
     getAllUsers,
     getUserById,
     updateUser,
+    getMyProfile,
+    updateMyProfile,
     deleteUser,
     forgotpassword,
     resetpassword
