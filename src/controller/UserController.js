@@ -8,19 +8,16 @@ const bcrypt = require('bcrypt');
 const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 const STRONG_PASSWORD_MESSAGE = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
 
-const getUploadedProfilePath = (req) => {
-    if (req.file && req.file.filename) {
-        return `/uploads/${req.file.filename}`;
+const getUploadedProfileFile = (req) => {
+    if (req.file) {
+        return req.file;
     }
 
     if (Array.isArray(req.files) && req.files.length > 0) {
-        const firstFile = req.files[0];
-        if (firstFile && firstFile.filename) {
-            return `/uploads/${firstFile.filename}`;
-        }
+        return req.files[0];
     }
 
-    return "";
+    return null;
 };
 
 const splitFullName = (value = "") => {
@@ -243,10 +240,12 @@ const getUserById = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const updatePayload = buildUserProfileUpdatePayload(req.body);
-        const uploadedProfilePath = getUploadedProfilePath(req);
+        const uploadedProfileFile = getUploadedProfileFile(req);
 
-        if (uploadedProfilePath) {
-            updatePayload.profilepic = uploadedProfilePath;
+        if (uploadedProfileFile) {
+            const { uploadToCloudinary } = require('../utils/CloudinaryUtils');
+            const cloudinaryResponse = await uploadToCloudinary(uploadedProfileFile.buffer);
+            updatePayload.profilepic = cloudinaryResponse.secure_url;
         }
 
         const targetUserId = req.params.id || (req.user && (req.user.id || req.user._id));
