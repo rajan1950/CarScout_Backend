@@ -25,7 +25,7 @@ const normalizeOwner = (owner) => {
   return ownerMap[key] || owner;
 };
 
-const normalizeCarPayload = (body = {}, file = null) => ({
+const normalizeCarPayload = (body = {}, fileUrl = null) => ({
   brand: body.brand,
   model: body.model,
   city: body.city,
@@ -36,7 +36,7 @@ const normalizeCarPayload = (body = {}, file = null) => ({
   transmission: body.transmission,
   price: Number(body.price),
   description: body.description || "",
-  image: file ? `/uploads/${file.filename}` : (body.image || "")
+  image: fileUrl || body.image || ""
 });
 
 const validateCarPayload = (payload) => {
@@ -69,14 +69,12 @@ const createCar = async (req, res) => {
       });
     }
 
-    const cloudinaryResponse = await uploadToCloudinary(req.file.path);
+    const cloudinaryResponse = await uploadToCloudinary(req.file.buffer);
     const imageUrl = cloudinaryResponse.secure_url;
-
-
 
     // console.log("file....",req.file); // Log the uploaded file information
 
-    const payload = normalizeCarPayload({ ...req.body, image: imageUrl });
+    const payload = normalizeCarPayload({ ...req.body }, imageUrl);
     const validationError = validateCarPayload(payload);
 
     if (validationError) {
