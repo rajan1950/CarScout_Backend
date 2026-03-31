@@ -39,6 +39,15 @@ const { startTestDriveReminderWorker } = require("./src/controller/TestDriveCont
 const notificationRoutes = require("./src/routes/NotificationRoutes");
 app.use("/notification", notificationRoutes);
 
+const wishlistRoutes = require("./src/routes/WishlistRoutes");
+app.use("/wishlist", wishlistRoutes);
+
+const bookingRoutes = require("./src/routes/BookingRoutes");
+app.use("/booking", bookingRoutes);
+
+const reportRoutes = require("./src/routes/ReportRoutes");
+app.use("/report", reportRoutes);
+
 const PORT= process.env.PORT  
 app.listen(PORT, () => {
     startTestDriveReminderWorker();
