@@ -28,6 +28,31 @@ const userSchema = new Schema({
         type: String,
         default: ""
     },
+    mobile: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    pinCode: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    address: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    city: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    area: {
+        type: String,
+        default: "",
+        trim: true
+    },
     status: {
         type: String,
         default: "active",
@@ -57,7 +82,7 @@ const userSchema = new Schema({
             }
         }
     ]
-});{ timestamps: true }
+}, { timestamps: true });
 
 
 const User = mongoose.model('Users', userSchema);
