@@ -1,13 +1,11 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 
 const app = express();
 require("dotenv").config();
 app.use(express.json());
 // Enable CORS for all routes
 app.use(cors());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const DBConnection = require("./src/utils/DBConnection");
 DBConnection();
