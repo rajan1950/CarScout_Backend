@@ -17,6 +17,17 @@ const getUploadedProfileFile = (req) => {
         return req.files[0];
     }
 
+    if (req.files && typeof req.files === "object") {
+        const candidateFields = ["profilepic", "profilePic", "profilePhoto", "image", "avatar", "file"];
+
+        for (const fieldName of candidateFields) {
+            const files = req.files[fieldName];
+            if (Array.isArray(files) && files.length > 0) {
+                return files[0];
+            }
+        }
+    }
+
     return null;
 };
 
