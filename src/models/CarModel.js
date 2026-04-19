@@ -2,6 +2,31 @@ const mongoose = require("mongoose");
 
 const carSchema = new mongoose.Schema({
 
+  sellerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Users",
+    default: null
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Users",
+    default: null
+  },
+  addedByRole: {
+    type: String,
+    default: ""
+  },
+  addedByName: {
+    type: String,
+    default: "",
+    trim: true
+  },
+  addedByEmail: {
+    type: String,
+    default: "",
+    trim: true
+  },
+
   brand: {
     type: String,
     required: true,
@@ -54,6 +79,10 @@ const carSchema = new mongoose.Schema({
     type: String,
     default: "",
     trim: true
+  },
+  images: {
+    type: [String],
+    default: []
   }
 
 }, { timestamps: true });
