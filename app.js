@@ -49,6 +49,9 @@ app.use("/report", reportRoutes);
 const emailRoutes = require("./src/routes/EmailRoutes");
 app.use("/email", emailRoutes);
 
+const offerRoutes = require("./src/routes/offerRoutes");
+app.use("/offer", offerRoutes);
+
 const PORT= process.env.PORT  
 app.listen(PORT, () => {
     startTestDriveReminderWorker();
