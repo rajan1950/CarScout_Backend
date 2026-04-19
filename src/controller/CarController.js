@@ -25,7 +25,12 @@ const normalizeOwner = (owner) => {
   return ownerMap[key] || owner;
 };
 
-const normalizeCarPayload = (body = {}, fileUrl = null) => ({
+const normalizeCarPayload = (body = {}, fileUrls = []) => ({
+  sellerId: body.sellerId || body.createdBy || body.userId || null,
+  createdBy: body.createdBy || body.userId || body.sellerId || null,
+  addedByRole: body.addedByRole || "",
+  addedByName: body.addedByName || "",
+  addedByEmail: body.addedByEmail || "",
   brand: body.brand,
   model: body.model,
   city: body.city,
@@ -36,7 +41,8 @@ const normalizeCarPayload = (body = {}, fileUrl = null) => ({
   transmission: body.transmission,
   price: Number(body.price),
   description: body.description || "",
-  image: fileUrl || body.image || ""
+  image: fileUrls[0] || body.image || "",
+  images: fileUrls.length ? fileUrls : (Array.isArray(body.images) ? body.images : [])
 });
 
 const validateCarPayload = (payload) => {
@@ -63,18 +69,33 @@ const validateCarPayload = (payload) => {
 // CREATE CAR
 const createCar = async (req, res) => {
   try {
-    if (!req.file) {
+    const imageFiles = [
+      ...((req.files && req.files.image) || []),
+      ...((req.files && req.files.images) || [])
+    ];
+
+    if (!imageFiles.length) {
       return res.status(400).json({
-        message: "image is required"
+        message: "at least one image is required"
       });
     }
 
-    const cloudinaryResponse = await uploadToCloudinary(req.file.buffer);
-    const imageUrl = cloudinaryResponse.secure_url;
+    const uploadedImages = await Promise.all(
+      imageFiles.map((file) => uploadToCloudinary(file.buffer))
+    );
+    const imageUrls = uploadedImages
+      .map((item) => item && item.secure_url)
+      .filter(Boolean);
+
+    if (!imageUrls.length) {
+      return res.status(500).json({
+        message: "failed to upload car images"
+      });
+    }
 
     // console.log("file....",req.file); // Log the uploaded file information
 
-    const payload = normalizeCarPayload({ ...req.body }, imageUrl);
+    const payload = normalizeCarPayload({ ...req.body }, imageUrls);
     const validationError = validateCarPayload(payload);
 
     if (validationError) {
