@@ -49,7 +49,7 @@ const carSchema = new mongoose.Schema({
   owner: {
     type: String,
     required: true,
-    enum: ["1st owner", "2nd owner", "3rd owner", "4th owner"]
+    enum: ["1st owner", "2nd owner", "3rd owner", "4th owner","5th owner", "6th owner", "7th owner", "8th owner", "9th owner", "10th owner"]
   },
   price: {
     type: Number,
@@ -68,7 +68,7 @@ const carSchema = new mongoose.Schema({
   transmission: {
     type: String,
     required: true,
-    enum: ["Manual", "Automatic"]
+    enum: ["Manual", "Automatic","Semi-Automatic"]
   },
   description: {
     type: String,
